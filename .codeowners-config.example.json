@@ -1,0 +1,40 @@
+{
+  "repoPath": ".",
+  "outputPath": ".github/CODEOWNERS",
+  "majorityThreshold": 50,
+  "topContributorsCount": 2,
+  "recencyWeighting": true,
+  "recencyHalfLife": 180,
+  "excludeMergeCommits": true,
+  "excludeBotCommits": true,
+  "bulkChangeThreshold": 50,
+  "branch": "main",
+  "maxCommitAge": 0,
+  "preferFolderLevel": true,
+  "minCommits": 3,
+  "excludePatterns": [
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "*.log",
+    "dist/**",
+    "build/**",
+    "node_modules/**",
+    "coverage/**"
+  ],
+  "includePatterns": [],
+  "emailMappings": {
+    "alice@company.com": "@alice-github",
+    "bob@company.com": "@bob-github"
+  },
+  "defaultOwner": "@default-team",
+  "botPatterns": [
+    "bot",
+    "Bot",
+    "BOT",
+    "dependabot",
+    "renovate",
+    "github-actions",
+    "automation"
+  ]
+}
