@@ -75,8 +75,21 @@ export class GitAnalyzer {
 
     for (const entry of log.all) {
       // Get file changes for this commit
-      const diffSummary = await this.git.diffSummary([`${entry.hash}^`, entry.hash]);
-      const filesChanged = diffSummary.files.map(f => f.file);
+      let filesChanged: string[] = [];
+
+      try {
+        const diffSummary = await this.git.diffSummary([`${entry.hash}^`, entry.hash]);
+        filesChanged = diffSummary.files.map(f => f.file);
+      } catch (error) {
+        // Handle root commit (no parent) - get all files in the commit
+        try {
+          const showResult = await this.git.show([entry.hash, '--name-only', '--format=']);
+          filesChanged = showResult.split('\n').filter(f => f.trim().length > 0);
+        } catch (showError) {
+          // Skip this commit if we can't get files
+          continue;
+        }
+      }
 
       const commitInfo: CommitInfo = {
         hash: entry.hash,
