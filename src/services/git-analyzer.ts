@@ -184,7 +184,8 @@ export class GitAnalyzer {
     if (this.config.emailMappings) {
       for (const [email, username] of Object.entries(this.config.emailMappings)) {
         if (author.toLowerCase().includes(email.toLowerCase())) {
-          return username;
+          // Remove @ prefix if present, formatOwner will add it later
+          return username.startsWith('@') ? username.substring(1) : username;
         }
       }
     }

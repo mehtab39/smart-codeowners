@@ -128,18 +128,25 @@ export class OwnershipAnalyzer {
       }
     }
 
-    // Check email mappings
+    // Check email mappings (check both author name and email)
     if (this.config.emailMappings) {
-      for (const [emailPattern, username] of Object.entries(this.config.emailMappings)) {
-        if (email.includes(emailPattern.toLowerCase())) {
+      const authorLower = stats.author.toLowerCase();
+      for (const [pattern, username] of Object.entries(this.config.emailMappings)) {
+        const patternLower = pattern.toLowerCase();
+        if (email.includes(patternLower) || authorLower.includes(patternLower)) {
           return username.startsWith('@') ? username : `@${username}`;
         }
       }
     }
 
-    // Fallback: use author name (not ideal for CODEOWNERS)
+    // Fallback: use author name with @ prefix (not ideal for CODEOWNERS)
     // Users should configure email mappings for proper GitHub usernames
-    return stats.author;
+    // Check if author already has @ prefix (from normalization)
+    if (stats.author.startsWith('@')) {
+      return stats.author;
+    }
+    const author = stats.author.replace(/\s+/g, '-').toLowerCase();
+    return `@${author}`;
   }
 
   groupByFolder(results: OwnershipResult[]): Map<string, OwnershipResult[]> {
