@@ -44,19 +44,25 @@ program
       // Validate configuration
       ConfigLoader.validate(config);
 
+      // Load email mappings from all sources
+      const emailMappings = await ConfigLoader.loadEmailMappings(config);
+      if (Object.keys(emailMappings).length > 0 && options.verbose) {
+        console.log(chalk.cyan(`✓ Loaded ${Object.keys(emailMappings).length} email mappings\n`));
+      }
+
       // Display configuration
       if (options.verbose) {
         displayConfig(config);
       }
 
       // Analyze git history
-      const gitAnalyzer = new GitAnalyzer(config);
+      const gitAnalyzer = new GitAnalyzer(config, emailMappings);
       const fileStats = await gitAnalyzer.analyze();
 
       console.log(chalk.green(`✓ Analyzed ${fileStats.size} files\n`));
 
       // Analyze ownership
-      const ownershipAnalyzer = new OwnershipAnalyzer(config);
+      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings);
       const ownershipResults = ownershipAnalyzer.analyze(fileStats);
 
       // Display statistics
@@ -90,12 +96,15 @@ program
       if (options.repo) config.repoPath = options.repo;
       if (options.branch) config.branch = options.branch;
 
+      // Load email mappings from all sources
+      const emailMappings = await ConfigLoader.loadEmailMappings(config);
+
       // Analyze git history
-      const gitAnalyzer = new GitAnalyzer(config);
+      const gitAnalyzer = new GitAnalyzer(config, emailMappings);
       const fileStats = await gitAnalyzer.analyze();
 
       // Analyze ownership
-      const ownershipAnalyzer = new OwnershipAnalyzer(config);
+      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings);
       let ownershipResults = ownershipAnalyzer.analyze(fileStats);
 
       // Filter by file if specified

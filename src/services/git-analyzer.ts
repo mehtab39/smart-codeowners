@@ -5,9 +5,11 @@ import { resolve } from 'path';
 export class GitAnalyzer {
   private git: SimpleGit;
   private config: Config;
+  private emailMappings: Record<string, string> = {};
 
-  constructor(config: Config) {
+  constructor(config: Config, emailMappings?: Record<string, string>) {
     this.config = config;
+    this.emailMappings = emailMappings || config.emailMappings || {};
     const repoPath = resolve(config.repoPath || process.cwd());
     this.git = simpleGit(repoPath);
   }
@@ -181,8 +183,8 @@ export class GitAnalyzer {
 
   private normalizeAuthor(author: string): string {
     // Check if we have email mappings
-    if (this.config.emailMappings) {
-      for (const [email, username] of Object.entries(this.config.emailMappings)) {
+    if (this.emailMappings && Object.keys(this.emailMappings).length > 0) {
+      for (const [email, username] of Object.entries(this.emailMappings)) {
         if (author.toLowerCase().includes(email.toLowerCase())) {
           // Remove @ prefix if present, formatOwner will add it later
           return username.startsWith('@') ? username.substring(1) : username;

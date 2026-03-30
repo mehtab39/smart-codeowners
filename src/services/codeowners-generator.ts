@@ -115,7 +115,7 @@ export class CodeOwnersGenerator {
     lines.push('# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners');
     lines.push('');
 
-    // Add default owner if configured
+    // Add default owner if configured (at the top as default)
     if (this.config.defaultOwner) {
       lines.push('# Default owner for everything');
       lines.push(`* ${this.config.defaultOwner}`);
@@ -156,6 +156,16 @@ export class CodeOwnersGenerator {
       for (const entry of entries) {
         lines.push(this.formatEntry(entry));
       }
+      lines.push('');
+    }
+
+    // Add repository owner if configured (at the bottom as catch-all)
+    if (this.config.repositoryOwner) {
+      lines.push('# Repository owner (catch-all for any files not matched above)');
+      const formattedOwner = this.config.repositoryOwner.startsWith('@')
+        ? this.config.repositoryOwner
+        : `@${this.config.repositoryOwner}`;
+      lines.push(`* ${formattedOwner}`);
       lines.push('');
     }
 

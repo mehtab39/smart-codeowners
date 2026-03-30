@@ -50,6 +50,15 @@ export interface Config {
   /** Email domain to username mappings */
   emailMappings?: Record<string, string>;
 
+  /** Path to external email mappings file (JSON key-value) */
+  emailMappingsFile?: string;
+
+  /** Curl command to fetch email mappings from API */
+  emailMappingsCurl?: string;
+
+  /** Repository owner - gets assigned to wildcard (*) rule at bottom of CODEOWNERS */
+  repositoryOwner?: string;
+
   /** Bot author patterns (regex) */
   botPatterns?: string[];
 }

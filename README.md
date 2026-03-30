@@ -153,6 +153,9 @@ Create a `.codeowners-config.json` file in your repository root:
     "alice@company.com": "@alice-github",
     "bob@company.com": "@bob-github"
   },
+  "emailMappingsFile": "path/to/email-mappings.json",
+  "emailMappingsCurl": "curl -H 'Authorization: Bearer token' https://api.example.com/mappings",
+  "repositoryOwner": "@repo-owner",
   "defaultOwner": "@default-team",
   "botPatterns": [
     "bot",
@@ -183,6 +186,9 @@ Create a `.codeowners-config.json` file in your repository root:
 | `excludePatterns` | string[] | `[]` | File patterns to exclude from analysis |
 | `includePatterns` | string[] | `[]` | File patterns to include (empty = all files) |
 | `emailMappings` | object | `{}` | Map email addresses to GitHub usernames |
+| `emailMappingsFile` | string | `undefined` | Path to JSON file with email-to-username mappings |
+| `emailMappingsCurl` | string | `undefined` | Curl command to fetch email mappings from API |
+| `repositoryOwner` | string | `undefined` | Repository owner - gets wildcard (*) at bottom of CODEOWNERS |
 | `defaultOwner` | string | `undefined` | Default owner/team for files without clear ownership |
 | `botPatterns` | string[] | `["bot", "dependabot", ...]` | Regex patterns to identify bot commits |
 
@@ -266,7 +272,11 @@ docs/README.md                  @alice @charlie            # Top 2 contributors
 
 ### 1. Email Mappings
 
-Configure `emailMappings` to map company emails to GitHub usernames:
+Smart-codeowners provides multiple ways to map email addresses to GitHub usernames:
+
+#### Direct Mapping (Config File)
+
+Configure `emailMappings` directly in your config file:
 
 ```json
 {
@@ -277,6 +287,45 @@ Configure `emailMappings` to map company emails to GitHub usernames:
   }
 }
 ```
+
+#### External File Mapping
+
+Load email mappings from an external JSON file:
+
+```json
+{
+  "emailMappingsFile": ".github/email-mappings.json"
+}
+```
+
+The external file should contain a simple key-value object:
+
+```json
+{
+  "alice.smith@company.com": "@alice",
+  "bob.jones@company.com": "@bob-jones"
+}
+```
+
+#### API/Curl Mapping
+
+Fetch email mappings from an API using a curl command:
+
+```json
+{
+  "emailMappingsCurl": "curl -H 'Authorization: Bearer YOUR_TOKEN' https://api.example.com/email-mappings"
+}
+```
+
+The API should return a JSON object with email-to-username mappings.
+
+**Priority Order**: Direct mappings (config file) take highest priority, followed by file mappings, then curl mappings.
+
+#### GitHub Noreply Email Detection
+
+The tool automatically extracts GitHub usernames from GitHub noreply emails:
+- `username@users.noreply.github.com` → `@username`
+- `123456+username@users.noreply.github.com` → `@username` (with numeric ID)
 
 ### 2. Exclude Patterns
 
@@ -295,7 +344,21 @@ Exclude generated files and dependencies:
 }
 ```
 
-### 3. Adjust Recency Half-Life
+### 3. Repository Owner
+
+Set a repository owner to add a wildcard catch-all rule at the bottom of the CODEOWNERS file:
+
+```json
+{
+  "repositoryOwner": "@repo-admin"
+}
+```
+
+This will add `* @repo-admin` at the end of the CODEOWNERS file, ensuring that any files not matched by more specific rules will be assigned to the repository owner. This is useful for ensuring all files have at least one owner.
+
+**Note**: This is different from `defaultOwner`, which is added at the top and acts as the default for all files (more specific rules override it).
+
+### 4. Adjust Recency Half-Life
 
 Choose half-life based on your team's dynamics:
 
@@ -303,13 +366,13 @@ Choose half-life based on your team's dynamics:
 - **Stable teams**: 180-270 days
 - **Long-term projects**: 365+ days
 
-### 4. Set Appropriate Thresholds
+### 5. Set Appropriate Thresholds
 
 - **High threshold (60-70%)**: Ensures only dominant contributors are owners
 - **Medium threshold (50%)**: Balanced approach
 - **Low threshold (40%)**: More inclusive, recognizes shared ownership
 
-### 5. Regular Updates
+### 6. Regular Updates
 
 Run the tool periodically (e.g., monthly) to keep CODEOWNERS up-to-date:
 

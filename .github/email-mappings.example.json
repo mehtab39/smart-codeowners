@@ -1,0 +1,6 @@
+{
+  "alice.smith@company.com": "@alice-github",
+  "bob.jones@company.com": "@bob-jones",
+  "charlie@example.com": "@charlie-dev",
+  "engineering@company.com": "@engineering-team"
+}

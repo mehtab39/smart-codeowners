@@ -27,6 +27,9 @@
     "alice@company.com": "@alice-github",
     "bob@company.com": "@bob-github"
   },
+  "emailMappingsFile": ".github/email-mappings.json",
+  "emailMappingsCurl": "curl -H 'Authorization: Bearer YOUR_TOKEN' https://api.example.com/email-mappings",
+  "repositoryOwner": "@repo-owner",
   "defaultOwner": "@default-team",
   "botPatterns": [
     "bot",

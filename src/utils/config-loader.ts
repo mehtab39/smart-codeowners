@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { Config } from '../types';
+import { EmailMappingLoader } from './email-mapping-loader';
 
 const DEFAULT_CONFIG: Config = {
   repoPath: process.cwd(),
@@ -66,6 +67,19 @@ export class ConfigLoader {
 
     // Merge with defaults
     return { ...DEFAULT_CONFIG, ...config };
+  }
+
+  /**
+   * Load and merge email mappings from all configured sources
+   */
+  static async loadEmailMappings(config: Config): Promise<Record<string, string>> {
+    const mappings = await EmailMappingLoader.loadMappings(
+      config.emailMappings,
+      config.emailMappingsFile,
+      config.emailMappingsCurl
+    );
+
+    return EmailMappingLoader.normalizeMappings(mappings);
   }
 
   static validate(config: Config): void {

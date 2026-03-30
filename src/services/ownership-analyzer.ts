@@ -2,9 +2,11 @@ import { Config, FileCommitStats, ContributorStats, OwnershipResult } from '../t
 
 export class OwnershipAnalyzer {
   private config: Config;
+  private emailMappings: Record<string, string> = {};
 
-  constructor(config: Config) {
+  constructor(config: Config, emailMappings?: Record<string, string>) {
     this.config = config;
+    this.emailMappings = emailMappings || config.emailMappings || {};
   }
 
   analyze(fileStats: Map<string, FileCommitStats>): OwnershipResult[] {
@@ -120,18 +122,19 @@ export class OwnershipAnalyzer {
     const email = stats.email.toLowerCase();
 
     // Common patterns for GitHub emails
+    // Format 1: username@users.noreply.github.com
+    // Format 2: 12345+username@users.noreply.github.com (with numeric ID)
     if (email.endsWith('@users.noreply.github.com')) {
-      // Format: username@users.noreply.github.com or 12345+username@users.noreply.github.com
       const match = email.match(/(?:\d+\+)?(.+)@users\.noreply\.github\.com/);
-      if (match) {
+      if (match && match[1]) {
         return `@${match[1]}`;
       }
     }
 
     // Check email mappings (check both author name and email)
-    if (this.config.emailMappings) {
+    if (this.emailMappings && Object.keys(this.emailMappings).length > 0) {
       const authorLower = stats.author.toLowerCase();
-      for (const [pattern, username] of Object.entries(this.config.emailMappings)) {
+      for (const [pattern, username] of Object.entries(this.emailMappings)) {
         const patternLower = pattern.toLowerCase();
         if (email.includes(patternLower) || authorLower.includes(patternLower)) {
           return username.startsWith('@') ? username : `@${username}`;
