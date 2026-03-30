@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { Config, OwnershipResult, CodeOwnersEntry } from '../types';
 import { OwnershipAnalyzer } from './ownership-analyzer';
@@ -13,8 +13,25 @@ export class CodeOwnersGenerator {
   }
 
   generate(ownershipResults: OwnershipResult[]): string {
-    const entries = this.buildEntries(ownershipResults);
+    // Filter out files that don't exist in current working tree
+    const existingFilesResults = this.filterExistingFiles(ownershipResults);
+    const entries = this.buildEntries(existingFilesResults);
     return this.formatCodeOwners(entries);
+  }
+
+  private filterExistingFiles(ownershipResults: OwnershipResult[]): OwnershipResult[] {
+    const repoPath = this.config.repoPath || process.cwd();
+
+    return ownershipResults.filter(result => {
+      const fullPath = resolve(repoPath, result.file);
+      const exists = existsSync(fullPath);
+
+      if (!exists) {
+        console.warn(`Skipping deleted file: ${result.file}`);
+      }
+
+      return exists;
+    });
   }
 
   private buildEntries(ownershipResults: OwnershipResult[]): CodeOwnersEntry[] {

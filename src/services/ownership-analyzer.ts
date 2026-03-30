@@ -1,12 +1,15 @@
 import { Config, FileCommitStats, ContributorStats, OwnershipResult } from '../types';
+import { UsernameValidator } from '../utils/username-validator';
 
 export class OwnershipAnalyzer {
   private config: Config;
   private emailMappings: Record<string, string> = {};
+  private usernameValidator: UsernameValidator;
 
-  constructor(config: Config, emailMappings?: Record<string, string>) {
+  constructor(config: Config, emailMappings?: Record<string, string>, validUsers?: string[]) {
     this.config = config;
     this.emailMappings = emailMappings || config.emailMappings || {};
+    this.usernameValidator = new UsernameValidator(validUsers);
   }
 
   analyze(fileStats: Map<string, FileCommitStats>): OwnershipResult[] {
@@ -70,7 +73,8 @@ export class OwnershipAnalyzer {
 
     // Determine ownership type and owners
     const majorityThreshold = this.config.majorityThreshold || 50;
-    const topContributorsCount = this.config.topContributorsCount || 2;
+    const maxOwnersPerFile = this.config.maxOwnersPerFile || 1;
+    const topContributorsCount = this.config.topContributorsCount || maxOwnersPerFile;
 
     let owners: string[] = [];
     let ownershipType: 'clear-majority' | 'top-contributors' | 'default';
@@ -86,11 +90,20 @@ export class OwnershipAnalyzer {
       ownershipType = 'clear-majority';
       owners = [this.formatOwner(qualifiedContributors[0])];
     } else {
-      // Multiple top contributors
+      // Multiple top contributors (limited by maxOwnersPerFile)
       ownershipType = 'top-contributors';
       owners = qualifiedContributors
-        .slice(0, topContributorsCount)
+        .slice(0, Math.min(topContributorsCount, maxOwnersPerFile))
         .map(stats => this.formatOwner(stats));
+    }
+
+    // Filter out invalid usernames
+    owners = this.usernameValidator.filterValidUsernames(owners);
+
+    // If all owners were filtered out, try default owner
+    if (owners.length === 0 && this.config.defaultOwner) {
+      owners = [this.config.defaultOwner];
+      ownershipType = 'default';
     }
 
     return {

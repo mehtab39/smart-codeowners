@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { Config } from '../types';
 import { EmailMappingLoader } from './email-mapping-loader';
+import { UsernameValidator } from './username-validator';
 
 const DEFAULT_CONFIG: Config = {
   repoPath: process.cwd(),
@@ -27,6 +28,7 @@ const DEFAULT_CONFIG: Config = {
   maxCommitAge: 0, // 0 means all history
   preferFolderLevel: true,
   minCommits: 3,
+  maxOwnersPerFile: 1, // Default to single owner
   botPatterns: [
     'bot',
     'Bot',
@@ -80,6 +82,16 @@ export class ConfigLoader {
     );
 
     return EmailMappingLoader.normalizeMappings(mappings);
+  }
+
+  /**
+   * Load valid GitHub users list from configured sources
+   */
+  static async loadValidUsers(config: Config): Promise<string[]> {
+    return await UsernameValidator.loadValidUsers(
+      config.validUsersFile,
+      config.validUsersCurl
+    );
   }
 
   static validate(config: Config): void {

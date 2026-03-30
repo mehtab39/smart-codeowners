@@ -50,6 +50,12 @@ program
         console.log(chalk.cyan(`✓ Loaded ${Object.keys(emailMappings).length} email mappings\n`));
       }
 
+      // Load valid users list
+      const validUsers = await ConfigLoader.loadValidUsers(config);
+      if (validUsers.length > 0 && options.verbose) {
+        console.log(chalk.cyan(`✓ Loaded ${validUsers.length} valid GitHub users\n`));
+      }
+
       // Display configuration
       if (options.verbose) {
         displayConfig(config);
@@ -62,7 +68,7 @@ program
       console.log(chalk.green(`✓ Analyzed ${fileStats.size} files\n`));
 
       // Analyze ownership
-      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings);
+      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings, validUsers);
       const ownershipResults = ownershipAnalyzer.analyze(fileStats);
 
       // Display statistics
@@ -99,12 +105,15 @@ program
       // Load email mappings from all sources
       const emailMappings = await ConfigLoader.loadEmailMappings(config);
 
+      // Load valid users list
+      const validUsers = await ConfigLoader.loadValidUsers(config);
+
       // Analyze git history
       const gitAnalyzer = new GitAnalyzer(config, emailMappings);
       const fileStats = await gitAnalyzer.analyze();
 
       // Analyze ownership
-      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings);
+      const ownershipAnalyzer = new OwnershipAnalyzer(config, emailMappings, validUsers);
       let ownershipResults = ownershipAnalyzer.analyze(fileStats);
 
       // Filter by file if specified

@@ -56,6 +56,15 @@ export interface Config {
   /** Curl command to fetch email mappings from API */
   emailMappingsCurl?: string;
 
+  /** Path to valid GitHub users file (JSON with users array) */
+  validUsersFile?: string;
+
+  /** Curl command to fetch valid GitHub users list from API */
+  validUsersCurl?: string;
+
+  /** Maximum number of owners per file/folder (default: 1) */
+  maxOwnersPerFile?: number;
+
   /** Repository owner - gets assigned to wildcard (*) rule at bottom of CODEOWNERS */
   repositoryOwner?: string;
 
